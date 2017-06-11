@@ -26,16 +26,30 @@
 #
 #
 #
+#
+#  Build in Docker
+#
+#
+#
+#
+#
+#
 ########################################################################################
 from selenium import webdriver
+#from selenium import RemoteWebDriver
 import time
 from datetime import date
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException 
+from selenium.webdriver.common.action_chains import ActionChains
 #import mysqlclient
 import pymysql
+import requests
+from lxml import html
 
+
+print('Version 0.1 - 11/06/2017')
 
 HOST="instagram.lukerussell.com"     #The host you want to connect to.
 USER="lukerussell"    # The database username. 
@@ -51,6 +65,11 @@ search_term = db.cursor(pymysql.cursors.DictCursor)
 User_To_Run = '1'
 
 
+global loop_limit
+loop_limit = 150
+
+global continue_script
+continue_script = 'Yes'
 
 sql = 'SELECT * FROM lr_instagram.instagram_user WHERE User_ID = '+str(User_To_Run)
 cur.execute(sql)
@@ -133,55 +152,294 @@ def button_exists_click(web_element):
 
 	button_to_click = driver.find_elements_by_class_name(web_element)
 	#print('Length:',len(button_to_click))
-	while len(button_to_click) < 1:
+	loop_check = 0
+	while len(button_to_click) < 1 and loop_check < loop_limit:
 		#print('Looking for Element')
 		button_to_click = driver.find_elements_by_class_name(web_element)
+		loop_check = loop_check + 1
 
 	if len(button_to_click) >= 1:
 		button_to_click = driver.find_element_by_class_name(web_element)
 		#print('Next:',button_to_click)
 		button_to_click.click() 
+		#global continue_script
+		continue_script = 'Yes'
+		print('Continue?',continue_script)
+	else: 
+		#global continue_script
+		continue_script = 'No'
+		print('Continue?',continue_script)
 
 def pausing():
 	print('Pause')
 	time.sleep(pause_amount)
 
 def unfollowing_all():
-	sql = 'Select * from lr_instagram.instagram_user_follows Where User_ID = 1 and Date_Followed < curdate() and Date_Unfollowed is null'
-	cur.execute(sql)
+
+	print('Clicking User Settings')
+	button_exists_click(instagram_user_account)
+
+	#frames = driver.find_elements_by_tag_name("frame")
+	#print(frames)
+	#print(len(frames))
+
+	time.sleep(5)
+
+	print('Pressing Followers')
+
+	button_to_click = driver.find_elements_by_partial_link_text('following')
+	loop_check = 0
+	while len(button_to_click) < 1 and loop_check < loop_limit:
+		#print('Looking for Element')
+		button_to_click = driver.find_elements_by_partial_link_text('following')
+		loop_check = loop_check + 1
+
+	print('Element Found')
+
+	#if len(button_to_click) >= 1:
+		#button_to_click = driver.find_element_by_partial_link_text('following')
+		#print('Next:',button_to_click)
+	button_to_click = driver.find_element_by_partial_link_text('following')
+	button_to_click.click() 
+		#global continue_script
+		#continue_script = 'Yes'
+		#print('Continue?',continue_script)
+	#else: 
+		#global continue_script
+		#continue_script = 'No'
+		#print('Continue?',continue_script)
 
 
-	for row in cur:
-		print('Unfollowing:',row['Username'])
-		Record_To_Unfollow = row['Record_Number']
-		#time.sleep(pause_amount)
-		#search_button = driver.find_element_by_class_name(instagram_search_button)
-		#search_button.click()
+ 	##### Trying to scroll the frame
+ 	# frames = driver.find_elements_by_tag_name("frame")
+ 	# print(frames)
+ 	# print(len(frames))
+	
+# 	# print('Scrolling Frame')
+# 	# unfollow_frame = driver.find_elements_by_class_name('_539vh')
+	
+# 	# print(len(unfollow_frame))
+# 	# loop_check = 0
+	
+# 	# while len(unfollow_frame) < 1 and loop_check < loop_limit:
+# 	# 	print('Looking for Element')
+# 	# 	unfollow_frame = driver.find_elements_by_class_name('_539vh')  #_539vh _4j13h
+# 	# 	loop_check = loop_check + 1
 
-		#print('Entering Search:',row['Username'])
-		#time.sleep(pause_amount)
-		#search_input = driver.find_element_by_class_name(instagram_search_input)
-		#search_input.send_keys(row['Username'])
-		#time.sleep(pause_amount)
-		#search_input.send_keys(u'\ue007')
-		time.sleep(pause_amount)
-		user_name = row['Username'] 
-		user_url = 'https://www.instagram.com/'+str(user_name)
-		print(user_url)
-		driver.get(user_url)
+# 	# unfollow_frame = driver.find_element_by_class_name('_539vh')
+# 	# unfollow_frame.click()
 
-		user_unfollow = driver.find_element_by_class_name(instagram_follow_button)
-		user_unfollow.click()
+# 	# scroll_frame_limit = 1000
+# 	# scroll_frame = 0
+	
+	button_to_click = driver.find_elements_by_class_name('_mmgca')
+	loop_check = 0
+	while len(button_to_click) < 1 and loop_check < loop_limit:
+		#print('Looking for Element')
+		button_to_click = driver.find_elements_by_class_name('_mmgca')
+		loop_check = loop_check + 1
 
-		sql = "UPDATE lr_instagram.instagram_user_follows SET Date_Unfollowed=,curdate(), WHERE Record_Number="+str(Record_To_Unfollow)
-		update.execute(sql)
-		print('SQL Updated',sql)
+
+	button_to_click = driver.find_element_by_class_name('_mmgca')
+	button_to_click.click()
+	
+
+
+	for i in range(0,1000):
+		ActionChains(driver).key_down(Keys.ARROW_DOWN).key_up(Keys.ARROW_DOWN).perform()
+		#print(i)
+
+# 	# while scroll_frame < scroll_frame_limit:	
+# 	# 	#unfollow_frame.send_keys(u'\ue015')
+# 	# 	#unfollow_frame.click()
+# 	# 	#unfollow_frame.send_keys(Keys.PAGE_DOWN).perform()
+# 	# 	#print('Scrolling',scroll_frame)
+# 	# 	scroll_frame = scroll_frame + 1
+
+	print('Listing Followers')
+
+# 	print()
+
+#    #//li[1]/div[1]
+
+ 
+# # //li[2]/div/div[2]/span/button is follow button
+
+	#button_text = driver.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[2]/ul/li/div/div[2]/span/button")
+	#while len(button_text) < 1 and loop_check < loop_limit:
+# 			#print('Looking for Element')
+		#button_text = driver.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[2]/ul/li/div/div[2]/span/button")
+# 	#		user_name_text = driver.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[2]/ul/li[1]/div/div[2]/span/button")
+		#loop_check = loop_check + 1
+
+	#print(len(button_text))
+
+# 	#button_text = driver.find_element_by_xpath("/html/body/div[2]/div/div[2]/div/div[2]/ul/li[30]/div/div[2]/span/button")
+# 	#print(len(button_text))
+# 	#print('Testing Button Text:',button_text.text)
+
+# #print()
+# 	unfollow_times = 50
+# 	unfollow_scrolls = 0
+
+#	while unfollow_scrolls < unfollow_times:
+	users_following = driver.find_elements_by_class_name(instagram_photo_username)
+	loop_check = 0
+# 		unfollow_buttons = driver.find_elements_by_class_name('_i46jh')
+	while len(users_following) < 1 and loop_check < loop_limit:
+# 			#print('Looking for Element')
+		users_following = driver.find_elements_by_class_name(instagram_photo_username)
+		#unfollow_buttons = driver.find_elements_by_class_name('_i46jh')
+		loop_check = loop_check + 1
+
+	print('Users:',len(users_following))
+# 		#print(users_following)
+
+	print('Screenshot')
+	driver.get_screenshot_as_file('followers.png')
+
+# 		unfollow_button = driver.find_elements_by_class_name('_ah57t')
+
+# 		user_number = 0
+# 		while user_number < len(users_following):
+# 			user_to_unfollow = users_following[user_number].text
+# 			unfollow_button =  unfollow_buttons[user_number]
+# 			unfollow_button_text = unfollow_buttons[user_number].text
+# 			print(user_number,'/',len(users_following),' ',users_following[user_number].text,':',unfollow_button_text)
+# 			#print(users_following[user_number].text)
+			
+# 			sql = "Select * from lr_instagram.instagram_user_follows Where User_ID = 1 and Username = '" + str(user_to_unfollow) + "'" #and Date_Unfollowed is null' # and Date_Followed < curdate()'
+# 			cur.execute(sql)
+
+# 			for row in cur:
+# 				if unfollow_buttons[user_number].text == 'Following':
+# 					unfollow_button.click()
+# 					time.sleep(3)
+# 				#unfollowed = unfollowed + 1
+
+# 			user_number = user_number + 1
+# 		unfollow_scrolls = unfollow_scrolls + 1
+# 		loop_check = 0
+
+# 	#sql = ''
+# 	unfollow_buttons = driver.find_elements_by_class_name('_i46j')
+# 	unfollow_buttons.click()
+	global user_to_unfollow 
+	user_to_unfollow = 0
+	#print(users_following[0].text)
+	global users_to_unfollow 
+	users_to_unfollow = []
+	global users_unfollowed
+	users_unfollowed = 0 
+	global unfollow_capped 
+	unfollow_capped = 'false'
+
+	# Just lists all Followers in an array
+	while user_to_unfollow < len(users_following):
+		users_to_unfollow.append([user_to_unfollow,users_following[user_to_unfollow].text])
+		#users_to_unfollow[user_to_unfollow] = users_following[user_to_unfollow].text
+		#print()
+		#print(user_to_unfollow,'/',len(users_following))
+		user_to_unfollow =  user_to_unfollow + 1
+
+	#print(users_to_unfollow[0][0])
+	#print(users_to_unfollow[0][1])
+
+	# Looping through Followers to unlike 
+	user_to_unfollow = 0
+	while user_to_unfollow < len(users_to_unfollow) and unfollow_capped != 'true':
+	
+		print(user_to_unfollow,'/',len(users_to_unfollow))
+		#users_to_unfollow[0]
+		#print(users_to_unfollow[user_to_unfollow].text)
+
+		sql = "Select * from lr_instagram.instagram_user_follows Where User_ID = 1 and username = '" + str(users_to_unfollow[user_to_unfollow][1]) +"'"
+		#print(sql)
+		cur.execute(sql)
+
+		for row in cur:
+
+			check_again = 'false'
+			check_count = 0
+			while check_again == 'false' and check_count <= 5:
+
+				print('Unfollowing:',row['Username'])
+				Record_To_Unfollow = row['Record_Number']
+			# 	#time.sleep(pause_amount)
+			# 	#search_button = driver.find_element_by_class_name(instagram_search_button)
+			# 	#search_button.click()
+
+			# 	#print('Entering Search:',row['Username'])
+			# 	#time.sleep(pause_amount)
+			# 	#search_input = driver.find_element_by_class_name(instagram_search_input)
+			# 	#search_input.send_keys(row['Username'])
+			# 	#time.sleep(pause_amount)
+			# 	#search_input.send_keys(u'\ue007')
+			# 	#time.sleep(pause_amount)
+				user_name = row['Username'] 
+				user_url = 'https://www.instagram.com/'+str(user_name)
+
+				driver.get(user_url)
+
+				#button_exists_click(instagram_follow_button)
+		        
+			# 	#user_unfollow = driver.find_element_by_class_name(instagram_follow_button)
+				button_to_click = driver.find_elements_by_class_name(instagram_follow_button)
+
+				loop_check = 0
+			# #print('Length:',len(button_to_click))
+				while len(button_to_click) < 1 and loop_check < 100:
+			# 	#print('Looking for Element')
+					button_to_click = driver.find_elements_by_class_name(instagram_follow_button)
+					loop_check = loop_check + 1
+
+			# 	if len(button_to_click) >= 1:
+				button_to_click = driver.find_element_by_class_name(instagram_follow_button)
+			# 		#print('Currently:',button_to_click.text)
+				if button_to_click.text == 'Following':
+			# 	#print('Next:',button_to_click)
+					#print('Unfollowing')
+					#sql = "UPDATE lr_instagram.instagram_user_follows SET Date_Unfollowed=curdate() WHERE Record_Number="+str(Record_To_Unfollow)
+					#update.execute(sql)	
+					button_to_click.click()
+					check_count = check_count + 1 
+				else: 
+					check_again = 'true'
+					users_unfollowed = users_unfollowed + 1
+					print('User Unfollowed:', users_unfollowed)
+
+					#button_to_click = driver.find_element_by_class_name(instagram_follow_button)
+
+					#loop_check = 0		
+					#while button_to_click.text != "Follow" and loop_check < 100:
+					#	loop_check = loop_check + 1
+
+					#driver.implicitly_wait(5)
+					#user_unfollow.click()
+
+					#sql = "UPDATE lr_instagram.instagram_user_follows SET Date_Unfollowed=curdate() WHERE Record_Number="+str(Record_To_Unfollow)
+					#print('SQL Updated',sql)
+
+				if check_count == 5:
+					print('Instagram Unfollow Capped')
+					unfollow_capped = 'true'
+
+	
+		#time.sleep(1)
+		#print(users_following)
+		user_to_unfollow = user_to_unfollow + 1
+		print('Next User')
 
 pause_amount = 2
 
 url = 'https://www.instagram.com/?hl=en'
 driver=webdriver.Chrome()
 #driver = webdriver.PhantomJS()
+#driver = webdriver.Remote("http://192.168.99.100:32780/wd/hub", webdriver.DesiredCapabilities.CHROME.copy())
+#driver = webdriver.Remote("http://localhost:4444/wd/hub", webdriver.DesiredCapabilities.CHROME.copy())
+driver.get("http://www.google.com")
+driver.get_screenshot_as_file('filename.png')
+
 
 driver.get(url)
 #time.sleep(pause_amount)
@@ -207,14 +465,16 @@ instagram_follow_button = '_ah57t' #_ah57t _84y62 _frcv2 _rmr7s
 instagram_more_button = '_8imhp'    # _8imhp _glz1g
 instagram_close_preview = '_3eajp'    #_3eajp
 
+instagram_user_account = 'coreSpriteDesktopNavProfile'  #_soakw _vbtk2 coreSpriteDesktopNavProfile
+instagram_user_following = '_bkw5z'   #_bkw5z
+instagram_following_list = '_4zhc5 notranslate _j7lfh' #_4zhc5 notranslate _j7lfh
 #Instagram - Minutes before like? Like a photo after 60 mins?
 #
-
 
 instagram_first_photo_link = '_8mlbc'   # _8mlbc _vbtk2 _t5r8b
 instagram_photo_username = '_4zhc5'  #_4zhc5 notranslate _ook48
 instagram_photo_no_likes = '_kkf84' # _kkf84 _oajsw
-instagram_photo_likes = '_tf9x3'  # _tf9x3   div-_iuf51 _oajsw  If Views Section - _tfkbw _d39wz   Div - _iuf51 _3sst1
+instagram_photo_likes = '_oajsw'  # _tf9x3   div-_iuf51 _oajsw  If Views Section - _tfkbw _d39wz   Div - _iuf51 _3sst1
 instagram_photo_like_button = '_1tv0k'  #_ebwb5 _1tv0k
 instagram_next_photo = 'coreSpriteRightPaginationArrow'   #_de018 coreSpriteRightPaginationArrow
 
@@ -222,10 +482,12 @@ inst_user_name = '_i572c' #_i572c
 inst_user_details = '_s53mj' #_s53mj _13vpi
 global ins_user_exists_len
 ins_user_exists_len = 0
+instagram_follow_user_switch = 'false'
 
 Keys_Control = '\ue009'
 Keys_Enter = '\ue007'
 Keys_Shift = '\ue008'
+Keys_Down = '\ue015'
 
 if login_method == 'Username':
 	print('Logging In')
@@ -269,6 +531,7 @@ if login_method == 'facebook':
 	login_button = driver.find_element_by_id(facebook_login_button)
 	login_button.click()
 
+#time.sleep(10)
 print('Unfollowing')
 unfollowing_all()
 
@@ -287,7 +550,13 @@ for row in search_term:
 	print('Running')
 	driver.get(url)
 	
+
+
 	print(username,': Hitting :',instagram_search_category,':',likes_to_hit)
+
+
+	print('Screenshot')
+	driver.get_screenshot_as_file('search.png')
 
 	#time.sleep(pause_amount)
 	print('Pressing Search')
@@ -343,7 +612,7 @@ for row in search_term:
 
 	while likes_hit <= likes_to_hit:
 
-		print('***********************',likes_hit,'/',likes_to_hit,'****************************************')
+		print('***********************',likes_hit,'/',likes_to_hit,'for',instagram_search_category,'****************************************')
 		#time.sleep(pause_amount)
 		#print('Looking at Photo Details')
 
@@ -385,13 +654,11 @@ for row in search_term:
 		photo_user.send_keys(u'\ue009' + u'\ue007')
 		#pausing()
 
-
-
 		base = driver.window_handles
 		focus = driver.current_window_handle
 		#print(base,focus)
 
-		#print('Windows:',len(base))
+		print('User Windows Open:',len(base),'(This should be 2)')
 		while len(base) < 2:
 			base = driver.window_handles
 
@@ -469,14 +736,19 @@ for row in search_term:
 
 		if user_followers < 2000:
 			#print('Going to Follow',ins_user_name)
-			follow()
+			if instagram_follow_user_switch == 'true':
+				follow()
 
 			#pausing()
 			#photo_like_button = driver.find_element_by_class_name(instagram_follow_button)
 			#photo_like_button.click()
 
 		user_exists = 0	
+		
+		print('User Window Closed')
 		driver.close()
+
+
 
 		base = driver.window_handles
 
@@ -507,25 +779,32 @@ for row in search_term:
 			
 			#pausing()
 			
-			photo_no_likes = driver.find_elements_by_class_name(instagram_photo_no_likes)
-			print('No Likes:',len(photo_no_likes))
+			#photo_no_likes = driver.find_elements_by_class_name(instagram_photo_no_likes)
+			#print('Length of Likes?:',len(photo_no_likes))
+
+			#if len(photo_no_likes) < 1:
+			photo_likes = driver.find_elements_by_class_name(instagram_photo_likes)
+
+			print('Photo Present:',len(photo_likes))
+			#photo_likes = driver.find_elements_by_class_name('tyrh')
+			#photo_likes.click
+
+			if len(photo_likes) < 1:
+				print('No Photo, can''t like')
 
 
-			if len(photo_no_likes) < 1:
-				photo_likes = driver.find_elements_by_class_name(instagram_photo_likes)
-
-				print('Photo Present:',len(photo_likes))
+			else:  
 				photo_likes = driver.find_element_by_class_name(instagram_photo_likes)
-	        
+		        
 				print('Photo Likes:',photo_likes.text)
 
 				#time.sleep(pause_amount)
-			print('Liking Photo')
-			button_exists_click(instagram_photo_like_button)
+				print('Liking Photo')
+				button_exists_click(instagram_photo_like_button)
 			#photo_like_button = driver.find_element_by_class_name(instagram_photo_like_button)
 			#photo_like_button.click()
 
-			likes_hit = likes_hit + 1
+				likes_hit = likes_hit + 1
 		else:
 			print('No use liking or following!!!!!!!!!!!!!!!!')
 
