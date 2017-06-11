@@ -648,7 +648,7 @@ for row in search_term:
 
 		base = driver.window_handles
 		focus = driver.current_window_handle
-		#print(base,focus)
+		print(base,focus)
 
 		#print('Opening User Page to Check Stats:')
 		photo_user.send_keys(u'\ue009' + u'\ue007')
@@ -656,7 +656,7 @@ for row in search_term:
 
 		base = driver.window_handles
 		focus = driver.current_window_handle
-		#print(base,focus)
+		print(base,focus)
 
 		print('User Windows Open:',len(base),'(This should be 2)')
 		while len(base) < 2:
