@@ -433,9 +433,9 @@ def unfollowing_all():
 pause_amount = 2
 
 url = 'https://www.instagram.com/?hl=en'
-driver=webdriver.Chrome()
+#driver=webdriver.Chrome()
 #driver = webdriver.PhantomJS()
-#driver = webdriver.Remote("http://192.168.99.100:32780/wd/hub", webdriver.DesiredCapabilities.CHROME.copy())
+driver = webdriver.Remote("http://192.168.99.100:32780/wd/hub", webdriver.DesiredCapabilities.CHROME.copy())
 #driver = webdriver.Remote("http://localhost:4444/wd/hub", webdriver.DesiredCapabilities.CHROME.copy())
 driver.get("http://www.google.com")
 driver.get_screenshot_as_file('filename.png')
